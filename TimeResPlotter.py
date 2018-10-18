@@ -21,6 +21,7 @@ sns.set_context('poster')
 gaussTimesExpo= lambda x,C,l,m,s,t: ((C*np.exp(-(x-t)*l))*((s**2)*2*np.pi)**(-1./2)*np.exp(-1/2*(x-m)**2/s**2))
 gaussPlusExpo= lambda x,C,D,l,m,s,t: (C*(np.exp(-(x-t)*l))+D*((s**2)*2*np.pi)**(-1./2)*np.exp(-1/2*(x-m)**2/s**2))
 landauPlusGauss= lambda x,C,l1,l2,D,m,s: C*((1./np.sqrt(2*np.pi))*np.exp(-(1./2)*(((x-m)/l1) + np.exp(-(x-m)/l2))))+D*((s**2)*2*np.pi)**(-1./2)*np.exp(-1/2*(x-m)**2/s**2)
+#landauPlusExpo = lambda x,H,t,l,C,m,l1,l2: H*(np.exp(-(x-t)*l)) + C*((1./np.sqrt(2*np.pi))*np.exp(-(1./2)*(((x-m)/l1) + np.exp(-(x-m)/l2))))
 landau = lambda x,C,m,l1,l2: C*((1./np.sqrt(2*np.pi))*np.exp(-(1./2)*(((x-m)/l1) + np.exp(-(x-m)/l2))))
 #wald = lambda x,C,m,s,d:  C * np.sqrt(m / (2.* np.pi *(x**s))) * np.exp(-(m*((x-d)**2))/(2.*(d**2)*x))
 #exponential_decay_pcon = lambda x, C, l, a: a + (C*np.exp(-x*l))
@@ -33,7 +34,8 @@ ENTRYNUM = 1
 NBINS = 100 
 #p0 = [100., 100, 100.]
 #p0 = [100.,100.,1.,12.,1.,10] #converges with ENTRYNUM=1 for gaussExpo
-p0 = [100., 10.,1.,1.] #Exploring for landau distribution convergence 
+#p0 = [10., 100., 1., 10.,1.,1.] #Exploring for landau distribution convergence 
+p0 = [100., 10., 1., 1.]
 #####/TUNABLES FOR GRAPH OUTPUT####
 
 f = uproot.open("./RecoTree.root")
