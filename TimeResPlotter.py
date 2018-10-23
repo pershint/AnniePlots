@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.optimize as scp
 import numpy as np
+import sys
 
 def Chi2OverNDOF(fit,dat,sig,NumVar):
     #Do not have bins with no data contribute to fit
@@ -30,7 +31,13 @@ landau = lambda x,C,m,l1,l2: C*((1./np.sqrt(2*np.pi))*np.exp(-(1./2)*(((x-m)/l1)
 #####TUNABLES FOR GRAPH OUTPUT#####
 thefunc = landau
 NumVariables = 4
-ENTRYNUM = 1
+try:
+    ENTRYNUM = int(sys.argv[1])
+except:
+    print("Something went wrong with your given event to plot")
+    print("Setting entry number to plot as 0")
+    ENTRYNUM = 0
+
 NBINS = 100 
 #p0 = [100., 100, 100.]
 #p0 = [100.,100.,1.,12.,1.,10] #converges with ENTRYNUM=1 for gaussExpo
@@ -38,7 +45,7 @@ NBINS = 100
 p0 = [100., 10., 1., 1.]
 #####/TUNABLES FOR GRAPH OUTPUT####
 
-f = uproot.open("./RecoTree.root")
+f = uproot.open("./RecoGridSeed_5LAPPD_Comb.root")
 ftree = f.get("phaseII")
 ftree.items()
 digitT = ftree.get("digitT")
