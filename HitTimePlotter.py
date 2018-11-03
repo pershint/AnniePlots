@@ -45,15 +45,18 @@ NBINS = 100
 p0 = [100., 10., 1., 1.]
 #####/TUNABLES FOR GRAPH OUTPUT####
 
-f = uproot.open("./RecoGridSeed_5LAPPD_Comb.root")
+f = uproot.open("./DiffSigmaComb.root")
 ftree = f.get("phaseII")
 ftree.items()
 digitT = ftree.get("digitT")
+TrueVtxTime = ftree.get("trueVtxTime")
 digitType = ftree.get("digitType")
 evn = ftree.get("eventNumber")
 evnums = evn.array()
 diT = digitT.array()
+trueT = TrueVtxTime.array()
 diType = digitType.array()
+TheTrueT = trueT[ENTRYNUM]
 FirstTimes = diT[ENTRYNUM]
 diTypes = diType[ENTRYNUM]
 print("FIRSTTIMES: " + str(FirstTimes))
@@ -86,8 +89,11 @@ xkcd_colors = ['light eggplant', 'black', 'slate blue', 'warm pink', 'green', 'g
 sns.set_palette(sns.xkcd_palette(xkcd_colors))
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-plt.hist(FirstTimes,bins=binedges, label="LAPPD Time Residuals")
-
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.hist(FirstTimes,bins=binedges, label="LAPPD Hit Times")
+ax.axvline(TheTrueT, color = "r", \
+        linewidth=4, label = "True Vertex Time")
 plt.plot(bincenters,bestfitfunc,label=r'best fit, $\frac{\chi^{2}}{NDF}=%s$'%(str(np.round(C2T,2))))
 #ax.plot(trueZvtx[0], trueXvtx[0], linestyle='none', 
 #markersize=20, label="True Vertex", marker='*')
@@ -96,6 +102,6 @@ plt.xlabel("Time Residual (ns)")
 leg = ax.legend(loc=1)
 leg.set_frame_on(True)
 leg.draw_frame(True)
-plt.title(r"Time Residual for event number %i"%(evnum)+"\n"+\
+plt.title(r"Hit times for event number %i"%(evnum)+"\n"+\
         "Landau distribution")
 plt.show()

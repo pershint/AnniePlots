@@ -51,14 +51,15 @@ if __name__=='__main__':
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     CLvalue = _getCLdatavalue(0.68,sorted_brancharr)
-    ax.plot(sorted_brancharr,csum, linewidth=4,label="MCTruth/Reco difference")
-    ax.axvline(CLvalue, color='black', linewidth=4, label="68%% CL=%s"%(str(np.round(CLvalue,1))))
+    ax.plot(sorted_brancharr,csum, linewidth=6,label="MCTruth/Reco difference")
+    ax.axvline(CLvalue, color='black', linewidth=6, label="68%% CL=%s"%(str(np.round(CLvalue,1))))
     plt.ylabel("Cumulative Distribution (%)")
-    plt.xlabel(branchname)
-    leg = ax.legend(loc=1)
+    plt.xlabel(branchname + " (deg)")
+    leg = ax.legend(loc=1,fontsize=14)
     leg.set_frame_on(True)
     leg.draw_frame(True)
-    plt.title("Cumulative distribution of variable %s\n MC Truth Fed to Extended Vertex Fitter,recoStatus==0"%(branchname))
+    plt.title("Cumulative distribution of variable %s,"%(branchname) + \
+            " MC Truth to VtxExtendedVertexFinder \n 128 PMTs + 128 LAPPDs, recoStatus==0")
     plt.show()
     #Following would work if you want to combine individual ROOT files
     #in here, rather than using

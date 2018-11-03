@@ -48,7 +48,7 @@ def IDsInRange(xdata, ydata, zdata, IDdata, ymin, ymax, thetamin, thetamax):
     plt.title("LAPPDIDs in y and theta region identified")
     plt.show()
 
-def YVSTheta(xdata, ydata, zdata):
+def YVSTheta(xdata, ydata, zdata,typedata):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     theta = []
@@ -78,16 +78,26 @@ def YVSTheta(xdata, ydata, zdata):
         theta.append(thistheta) #yeah that's confusing labeling
     y = ydata
     #X,Y = np.meshgrid(x, y)
-    plt.plot(theta,y,linestyle='none',markersize=4, marker='o')
-    ax.set_xlabel("LAPPD Theta (deg)", fontsize=22)
-    ax.set_ylabel("Y position (m)", fontsize=22)
+    #Get the PMT hit indices
+    y = np.array(y)
+    theta = np.array(theta)
+    pmtind = np.where(typedata==0)[0]
+    LAPPDind = np.where(typedata==1)[0]
+    print(LAPPDind)
+    plt.plot(theta[LAPPDind],y[LAPPDind],linestyle='none',markersize=4, marker='o',label='LAPPD hit')
+    plt.plot(theta[pmtind],y[pmtind],linestyle='none',markersize=12, marker='o',label='PMT hit')
+    leg = ax.legend(loc=2)
+    leg.set_frame_on(True)
+    leg.draw_frame(True)
+    ax.set_xlabel("Theta (deg)", fontsize=22)
+    ax.set_ylabel("Y (m)", fontsize=22)
     for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(20)
     for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(20)
-    plt.title("Positions of all LAPPDS hit in file loaded")
+    plt.title("Hit positions for a simulated muon production in ANNIE")
     plt.show()
 
 
-f = uproot.open("./RecoGridSeed_5LAPPD_Comb.root")
+f = uproot.open("./DiffSigmaComb.root")
 #GIVE AN EVENT NUMBER TO LOOK AT
 try:
     eventnum = int(sys.argv[1])
@@ -115,7 +125,7 @@ digitID = ftree.get("digitDetID")
 diID = digitID.array()
 sns.set_style("whitegrid")
 sns.axes_style("darkgrid")
-xkcd_colors = ['light eggplant', 'black', 'slate blue', 'warm pink', 'green', 'grass']
+xkcd_colors = ['eggplant', 'grass', 'vomit', 'warm pink', 'green', 'grass']
 sns.set_palette(sns.xkcd_palette(xkcd_colors))
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
@@ -155,5 +165,5 @@ leg.draw_frame(True)
 plt.title(r"Hits in ANNIE from simulated $\nu_{\mu}$ interaction producing a muon")
 plt.show()
 
-YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum])
+YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum],diType[eventnum])
 IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],-30,0,-40,-20)
