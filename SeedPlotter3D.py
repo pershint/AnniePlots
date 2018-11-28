@@ -1,4 +1,5 @@
 import uproot
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
@@ -36,41 +37,23 @@ seedZvtx = fSVZ.array()
 seedYvtx = fSVY.array()
 sns.set_style("whitegrid")
 sns.axes_style("darkgrid")
-xkcd_colors = ['magenta', 'black', 'green', 'warm pink', 'green', 'grass']
+xkcd_colors = ['magenta', 'black', 'slate blue', 'warm pink', 'green', 'grass']
 sns.set_palette(sns.xkcd_palette(xkcd_colors))
 
 #Print a warning if recoStatus==0 when all is said and done
 if recoStatus[eventnum]!=0:
     print("This event ultimately failed the reconstruction chain somewhere.")
 fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
-ax.plot(seedZvtx[eventnum], seedXvtx[eventnum], linestyle='none', 
-markersize=12, label="Vertex Seeds", marker='o')
-ax.plot(trueZvtx[eventnum], trueXvtx[eventnum], linestyle='none', 
-markersize=20, label="True Vertex", marker='*')
-ax.plot(pointposZvtx[eventnum], pointposXvtx[eventnum], linestyle='none', 
-markersize=20, label="PointPosition Vertex", marker='*')
-plt.ylabel("X [cm]",fontsize=30)
-plt.xlabel("Z [cm]",fontsize=30)
+ax = fig.add_subplot(111, projection='3d')
+seedx, seedy, seedz = [], [], []
+ax.scatter(seedZvtx[eventnum],seedXvtx[eventnum], seedYvtx[eventnum],label="Vertex seeds")
+ax.scatter(trueZvtx[eventnum], trueXvtx[eventnum], trueYvtx[eventnum],label="True Vertex",c='black',s=60,marker='*')
+ax.set_xlabel("Z position (mm)", fontsize=22)
+ax.set_ylabel("X position (mm)", fontsize=22)
+ax.set_zlabel("Y position (mm)", fontsize=22)
+for t in ax.zaxis.get_major_ticks(): t.label.set_fontsize(20)
 for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(20)
 for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(20)
-leg = ax.legend(loc=2)
-leg.set_frame_on(True)
-leg.draw_frame(True)
-plt.title("Seed generator results from simulated event",fontsize=34)
+plt.title("Seed points colored by their point fit FOM in ANNIE",fontsize=34)
 plt.show()
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
-ax.plot(seedZvtx[eventnum], seedYvtx[eventnum], linestyle='none', 
-markersize=5, label="Vertex Seeds", marker='o')
-ax.plot(trueZvtx[eventnum], trueYvtx[eventnum], linestyle='none', 
-markersize=20, label="True Vertex", marker='*')
-ax.plot(pointposZvtx[eventnum], pointposYvtx[eventnum], linestyle='none', 
-markersize=20, label="PointPosition Vertex", marker='*')
-plt.ylabel("Y [cm]")
-plt.xlabel("Z [cm]")
-leg = ax.legend(loc=2)
-leg.set_frame_on(True)
-leg.draw_frame(True)
-plt.title("Seed generator results from simulated event")
-plt.show()
+

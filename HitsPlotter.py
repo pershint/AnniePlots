@@ -1,5 +1,6 @@
 import uproot
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import seaborn as sns
 sns.set_context('poster')
 import sys
@@ -48,7 +49,7 @@ def IDsInRange(xdata, ydata, zdata, IDdata, ymin, ymax, thetamin, thetamax):
     plt.title("LAPPDIDs in y and theta region identified")
     plt.show()
 
-def YVSTheta(xdata, ydata, zdata,typedata):
+def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     theta = []
@@ -77,27 +78,50 @@ def YVSTheta(xdata, ydata, zdata,typedata):
         print(thistheta)
         theta.append(thistheta) #yeah that's confusing labeling
     y = ydata
-    #X,Y = np.meshgrid(x, y)
-    #Get the PMT hit indices
     y = np.array(y)
     theta = np.array(theta)
     pmtind = np.where(typedata==0)[0]
     LAPPDind = np.where(typedata==1)[0]
-    print(LAPPDind)
-    plt.plot(theta[LAPPDind],y[LAPPDind],linestyle='none',markersize=4, marker='o',label='LAPPD hit')
-    plt.plot(theta[pmtind],y[pmtind],linestyle='none',markersize=12, marker='o',label='PMT hit')
+    time = np.array(timedata)
+    charge = np.array(qdata)
+    #scatter plot with time as color
+    ourvmin = -5.0 #np.min(time)
+    ourvmax = 20.0 #np.max(time)
+    sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=time[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    cbar = plt.colorbar(sc,label='Time (ns)')
+    cbar.set_label(label='Time (ns)', size=30)
+    cbar.ax.tick_params(labelsize=30)
+    leg = ax.legend(loc=2)
+    leg.set_frame_on(True)
+    leg.draw_frame(True)
+    ax.set_xlabel("Theta (deg)", fontsize=34)
+    ax.set_ylabel("Y (cm)", fontsize=34)
+    for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(30)
+    for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(30)
+    plt.title("Hit times for a simulated muon production in ANNIE",fontsize=34)
+    plt.show()
+
+    #scatter plot with charge as color
+    ourvmin = np.min(charge)
+    ourvmax = np.max(charge)
+    sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=charge[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    plt.colorbar(sc,label='Charge')
     leg = ax.legend(loc=2)
     leg.set_frame_on(True)
     leg.draw_frame(True)
     ax.set_xlabel("Theta (deg)", fontsize=22)
-    ax.set_ylabel("Y (m)", fontsize=22)
+    ax.set_ylabel("Y (cm)", fontsize=22)
     for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(20)
     for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(20)
-    plt.title("Hit positions for a simulated muon production in ANNIE")
+    plt.title("Hit charges for a simulated muon production in ANNIE")
     plt.show()
 
 
-f = uproot.open("./DiffSigmaComb.root")
+
+
+f = uproot.open("./AllGridEffInd.root")
 #GIVE AN EVENT NUMBER TO LOOK AT
 try:
     eventnum = int(sys.argv[1])
@@ -119,6 +143,10 @@ digitY = ftree.get("digitY")
 diY = digitY.array()
 digitZ = ftree.get("digitZ")
 diZ = digitZ.array()
+digitTime = ftree.get("digitT")
+diTime = digitTime.array()
+digitQ = ftree.get("digitQ")
+diQ = digitQ.array()
 digitType = ftree.get("digitType")
 diType = digitType.array()
 digitID = ftree.get("digitDetID")
@@ -165,5 +193,5 @@ leg.draw_frame(True)
 plt.title(r"Hits in ANNIE from simulated $\nu_{\mu}$ interaction producing a muon")
 plt.show()
 
-YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum],diType[eventnum])
+YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum],diType[eventnum],diTime[eventnum],diQ[eventnum])
 IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],-30,0,-40,-20)
