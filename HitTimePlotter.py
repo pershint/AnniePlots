@@ -30,8 +30,9 @@ landau = lambda x,C,m,l1,l2: C*((1./np.sqrt(2*np.pi))*np.exp(-(1./2)*(((x-m)/l1)
 gauss = lambda x, C,m, s: C*(1./np.sqrt(((s**2)*2*np.pi)))*np.exp(-(1./2.)*(x-m)**2/s**2)
 
 #####TUNABLES FOR GRAPH OUTPUT#####
-thefunc = landauPlusGauss 
-NumVariables = 7
+#thefunc = landauPlusGauss 
+thefunc = landau
+NumVariables = 4
 try:
     ENTRYNUM = int(sys.argv[1])
 except:
@@ -42,7 +43,7 @@ except:
 NBINS = 100 
 #####/TUNABLES FOR GRAPH OUTPUT####
 
-f = uproot.open("./MuonShift_Test.root")
+f = uproot.open("./NewMCTest.root")
 ftree = f.get("phaseII")
 ftree.items()
 digitT = ftree.get("digitT")
@@ -64,10 +65,10 @@ binwidth = float(max(diT[ENTRYNUM]) - min(diT[ENTRYNUM]))/NBINS
 
 #p0 = [50., 3., 2.]  #For Gauss
 #p0 = [50., 3., 2.,5.,3.]  #For GaussTimesExpo
-#p0 = [100., 10., 1., 1.]  #For Landau
+p0 = [100., 10., 1., 1.]  #For Landau
 #p0 = [100., 100, 100.]
 #p0 = [100.,100.,1.,12.,1.,10] #converges with ENTRYNUM=1 for gaussExpo
-p0 = [10., 1., 100.,np.mean(FirstTimes)+2.,np.mean(FirstTimes)-2.,1.] #Exploring for landau distribution convergence 
+#p0 = [10., 1., 100.,np.mean(FirstTimes)+2.,np.mean(FirstTimes)-2.,1.] #Exploring for landau distribution convergence 
 
 binedges = np.arange(-5.0, 25.0, 30.0/NBINS)
 #Make this into a numpy histogram and we do a fit to the histogram itself
@@ -83,10 +84,10 @@ print("HIST SUM: " + str(timehist.sum()))
 popt, pcov = scp.curve_fit(thefunc, bincenters,timehist, p0=p0,maxfev=6000) 
 print("BEST COEFF: " + str(popt))
 #Now, get the best fit curve's points
-#bestfitfunc = thefunc(bincenters,popt[0], popt[1], popt[2],popt[3]) #for the Landau
+bestfitfunc = thefunc(bincenters,popt[0], popt[1], popt[2],popt[3]) #for the Landau
 #bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2]) #for the Gauss
 #bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2],popt[3],popt[4]) #for the GaussTimesExpo
-bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2],popt[3],popt[4],popt[5]) #for the LandauPlusGauss 
+#bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2],popt[3],popt[4],popt[5]) #for the LandauPlusGauss 
 C2T = Chi2OverNDOF(bestfitfunc,timehist,timehist,NumVariables)
 print("CHISQ TEST RESULT: " + str(C2T))
 sns.set_style("whitegrid")

@@ -11,7 +11,7 @@ except:
     print("Setting entry number to plot as 0")
     eventnum = 0
 
-f = uproot.open("./AllGridEffInd.root")
+f = uproot.open("./NewMCTest.root")
 ftree = f.get("phaseII")
 ftree.items()
 fTVZ = ftree.get("trueVtxZ")

@@ -37,6 +37,9 @@ def IDsInRange(xdata, ydata, zdata, IDdata, ymin, ymax, thetamin, thetamax):
     y = ydata
     idCut = []
     thetaCut = []
+    if len(theta) == 0:
+        print("No digits in range selected.  Continuing")
+        return
     for j,ID in enumerate(IDdata):
         if ydata[j] >ymin and ydata[j] < ymax:
             if theta[j] > thetamin and theta[j] < thetamax:
@@ -87,8 +90,11 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     #scatter plot with time as color
     ourvmin = -5.0 #np.min(time)
     ourvmax = 20.0 #np.max(time)
-    sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=time[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
-    plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    sc = None
+    if len(LAPPDind) > 0:
+        sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=time[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    if len(pmtind) > 0:
+        sc = plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     cbar = plt.colorbar(sc,label='Time (ns)')
     cbar.set_label(label='Time (ns)', size=30)
     cbar.ax.tick_params(labelsize=30)
@@ -105,8 +111,11 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     #scatter plot with charge as color
     ourvmin = np.min(charge)
     ourvmax = np.max(charge)
-    sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=charge[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
-    plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    if len(LAPPDind) > 0:
+        sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=charge[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    if len(pmtind) > 0:
+    
+       sc = plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     plt.colorbar(sc,label='Charge')
     leg = ax.legend(loc=2)
     leg.set_frame_on(True)
@@ -120,78 +129,78 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
 
 
 
-
-f = uproot.open("./AllGridEffInd.root")
-#GIVE AN EVENT NUMBER TO LOOK AT
-try:
-    eventnum = int(sys.argv[1])
-except:
-    print("Something went wrong with your given event to plot")
-    print("Setting entry number to plot as 0")
-    eventnum = 0
-ftree = f.get("phaseII")
-ftree.items()
-fTVZ = ftree.get("trueVtxZ")
-fTVY = ftree.get("trueVtxY")
-fTVX = ftree.get("trueVtxX")
-trueXvtx = fTVX.array()
-trueZvtx = fTVZ.array()
-trueYvtx = fTVY.array()
-digitX = ftree.get("digitX")
-diX = digitX.array()
-digitY = ftree.get("digitY")
-diY = digitY.array()
-digitZ = ftree.get("digitZ")
-diZ = digitZ.array()
-digitTime = ftree.get("digitT")
-diTime = digitTime.array()
-digitQ = ftree.get("digitQ")
-diQ = digitQ.array()
-digitType = ftree.get("digitType")
-diType = digitType.array()
-digitID = ftree.get("digitDetID")
-diID = digitID.array()
-sns.set_style("whitegrid")
-sns.axes_style("darkgrid")
-xkcd_colors = ['eggplant', 'grass', 'vomit', 'warm pink', 'green', 'grass']
-sns.set_palette(sns.xkcd_palette(xkcd_colors))
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
-ax.plot(diZ[eventnum],diX[eventnum], linestyle='none', marker='o',
-markersize=4, label="Digit Positions")
-ax.plot(trueZvtx[eventnum], trueXvtx[eventnum], linestyle='none', 
-markersize=20, label="True Vertex", marker='*')
-plt.ylabel("X [cm]")
-plt.xlabel("Z [cm]")
-leg = ax.legend(loc=2)
-leg.set_frame_on(True)
-leg.draw_frame(True)
-plt.title(r"Hits in ANNIE from simulated $\nu_{\mu}$ interaction producing a muon")
-plt.show()
-
-#Plot all hits at front of tank
-fronthits = np.where(diZ[eventnum]>0.0)[0]
-frontX = diX[eventnum][fronthits]
-frontY = diY[eventnum][fronthits]
-frontID = diID[eventnum][fronthits]
-print("THE FRONT IDS: " + str(frontID))
-#Now, only plot hits with a single id
-IDcut = 59 
-thisid = np.where(frontID==IDcut)[0]
-print("THIS ID: " + str(thisid))
-frontX = frontX[thisid]
-frontY = frontY[thisid]
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
-ax.plot(frontX,frontY, linestyle='none', marker='o',
-markersize=7, label="Digit Positions")
-plt.ylabel("Y [cm]")
-plt.xlabel("X [cm]")
-leg = ax.legend(loc=2)
-leg.set_frame_on(True)
-leg.draw_frame(True)
-plt.title(r"Hits in ANNIE from simulated $\nu_{\mu}$ interaction producing a muon")
-plt.show()
-
-YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum],diType[eventnum],diTime[eventnum],diQ[eventnum])
-IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],-30,0,-40,-20)
+if __name__=='__main__':
+    f = uproot.open("./PromptTrig_PMTs_Comb.root")
+    #GIVE AN EVENT NUMBER TO LOOK AT
+    try:
+        eventnum = int(sys.argv[1])
+    except:
+        print("Something went wrong with your given event to plot")
+        print("Setting entry number to plot as 0")
+        eventnum = 0
+    ftree = f.get("phaseII")
+    ftree.items()
+    fTVZ = ftree.get("trueVtxZ")
+    fTVY = ftree.get("trueVtxY")
+    fTVX = ftree.get("trueVtxX")
+    trueXvtx = fTVX.array()
+    trueZvtx = fTVZ.array()
+    trueYvtx = fTVY.array()
+    digitX = ftree.get("digitX")
+    diX = digitX.array()
+    digitY = ftree.get("digitY")
+    diY = digitY.array()
+    digitZ = ftree.get("digitZ")
+    diZ = digitZ.array()
+    digitTime = ftree.get("digitT")
+    diTime = digitTime.array()
+    digitQ = ftree.get("digitQ")
+    diQ = digitQ.array()
+    digitType = ftree.get("digitType")
+    diType = digitType.array()
+    digitID = ftree.get("digitDetID")
+    diID = digitID.array()
+    sns.set_style("whitegrid")
+    sns.axes_style("darkgrid")
+    xkcd_colors = ['eggplant', 'grass', 'vomit', 'warm pink', 'green', 'grass']
+    sns.set_palette(sns.xkcd_palette(xkcd_colors))
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(diZ[eventnum],diX[eventnum], linestyle='none', marker='o',
+    markersize=4, label="Digit Positions")
+    ax.plot(trueZvtx[eventnum], trueXvtx[eventnum], linestyle='none', 
+    markersize=20, label="True Vertex", marker='*')
+    plt.ylabel("X [cm]")
+    plt.xlabel("Z [cm]")
+    leg = ax.legend(loc=2)
+    leg.set_frame_on(True)
+    leg.draw_frame(True)
+    plt.title(r"Hits in ANNIE from simulated $\nu_{\mu}$ interaction producing a muon")
+    plt.show()
+    
+    #Plot all hits at front of tank
+    fronthits = np.where(diZ[eventnum]>0.0)[0]
+    frontX = diX[eventnum][fronthits]
+    frontY = diY[eventnum][fronthits]
+    frontID = diID[eventnum][fronthits]
+    print("THE FRONT IDS: " + str(frontID))
+    #Now, only plot hits with a single id
+    IDcut = 59 
+    thisid = np.where(frontID==IDcut)[0]
+    print("THIS ID: " + str(thisid))
+    frontX = frontX[thisid]
+    frontY = frontY[thisid]
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(frontX,frontY, linestyle='none', marker='o',
+    markersize=7, label="Digit Positions")
+    plt.ylabel("Y [cm]")
+    plt.xlabel("X [cm]")
+    leg = ax.legend(loc=2)
+    leg.set_frame_on(True)
+    leg.draw_frame(True)
+    plt.title(r"Hits in ANNIE from simulated $\nu_{\mu}$ interaction producing a muon")
+    plt.show()
+    
+    YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum],diType[eventnum],diTime[eventnum],diQ[eventnum])
+    IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],80,110,-20,0)
