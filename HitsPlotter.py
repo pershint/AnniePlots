@@ -45,8 +45,8 @@ def IDsInRange(xdata, ydata, zdata, IDdata, ymin, ymax, thetamin, thetamax):
             if theta[j] > thetamin and theta[j] < thetamax:
                 idCut.append(ID)
     plt.hist(idCut)
-    ax.set_xlabel("LAPPD Theta (deg)", fontsize=22)
-    ax.set_ylabel("Y position (m)", fontsize=22)
+    ax.set_xlabel("LAPPD ID", fontsize=22)
+    ax.set_ylabel("Digit counts", fontsize=22)
     for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(20)
     for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(20)
     plt.title("LAPPDIDs in y and theta region identified")
@@ -88,13 +88,13 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     time = np.array(timedata)
     charge = np.array(qdata)
     #scatter plot with time as color
-    ourvmin = -5.0 #np.min(time)
+    ourvmin = 9.0 #np.min(time)
     ourvmax = 20.0 #np.max(time)
     sc = None
     if len(LAPPDind) > 0:
         sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=time[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     if len(pmtind) > 0:
-        sc = plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+        sc = plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=400, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     cbar = plt.colorbar(sc,label='Time (ns)')
     cbar.set_label(label='Time (ns)', size=30)
     cbar.ax.tick_params(labelsize=30)
@@ -107,7 +107,9 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(30)
     plt.title("Hit times for a simulated muon production in ANNIE",fontsize=34)
     plt.show()
-
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     #scatter plot with charge as color
     ourvmin = np.min(charge)
     ourvmax = np.max(charge)
@@ -115,13 +117,15 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
         sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=charge[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     if len(pmtind) > 0:
     
-       sc = plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=150, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
-    plt.colorbar(sc,label='Charge')
+       sc = plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=400, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+    cbar = plt.colorbar(sc,label='Charge')
+    cbar.set_label(label='Charge', size=30)
+    cbar.ax.tick_params(labelsize=30)
     leg = ax.legend(loc=2)
     leg.set_frame_on(True)
     leg.draw_frame(True)
-    ax.set_xlabel("Theta (deg)", fontsize=22)
-    ax.set_ylabel("Y (cm)", fontsize=22)
+    ax.set_xlabel("Theta (deg)", fontsize=34)
+    ax.set_ylabel("Y (cm)", fontsize=34)
     for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(20)
     for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(20)
     plt.title("Hit charges for a simulated muon production in ANNIE")
@@ -130,7 +134,7 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
 
 
 if __name__=='__main__':
-    f = uproot.open("./PromptTrig_PMTs_Comb.root")
+    f = uproot.open("./FullComb.root")
     #GIVE AN EVENT NUMBER TO LOOK AT
     try:
         eventnum = int(sys.argv[1])
@@ -203,4 +207,4 @@ if __name__=='__main__':
     plt.show()
     
     YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum],diType[eventnum],diTime[eventnum],diQ[eventnum])
-    IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],80,110,-20,0)
+    IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],-10,10,-50,-40)

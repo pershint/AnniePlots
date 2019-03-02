@@ -31,8 +31,9 @@ gauss = lambda x, C,m, s: C*(1./np.sqrt(((s**2)*2*np.pi)))*np.exp(-(1./2.)*(x-m)
 
 #####TUNABLES FOR GRAPH OUTPUT#####
 #thefunc = landauPlusGauss 
-thefunc = landau
-NumVariables = 4
+#thefunc = landau
+thefunc = gauss
+NumVariables = 3
 try:
     ENTRYNUM = int(sys.argv[1])
 except:
@@ -43,7 +44,7 @@ except:
 NBINS = 100 
 #####/TUNABLES FOR GRAPH OUTPUT####
 
-f = uproot.open("./NewMCTest.root")
+f = uproot.open("./FullComb.root")
 ftree = f.get("phaseII")
 ftree.items()
 digitT = ftree.get("digitT")
@@ -63,9 +64,9 @@ print(len(FirstTimes))
 evnum = evnums[ENTRYNUM]
 binwidth = float(max(diT[ENTRYNUM]) - min(diT[ENTRYNUM]))/NBINS
 
-#p0 = [50., 3., 2.]  #For Gauss
+p0 = [50., 3., 2.]  #For Gauss
 #p0 = [50., 3., 2.,5.,3.]  #For GaussTimesExpo
-p0 = [100., 10., 1., 1.]  #For Landau
+#p0 = [100., 10., 1., 1.]  #For Landau
 #p0 = [100., 100, 100.]
 #p0 = [100.,100.,1.,12.,1.,10] #converges with ENTRYNUM=1 for gaussExpo
 #p0 = [10., 1., 100.,np.mean(FirstTimes)+2.,np.mean(FirstTimes)-2.,1.] #Exploring for landau distribution convergence 
@@ -84,8 +85,8 @@ print("HIST SUM: " + str(timehist.sum()))
 popt, pcov = scp.curve_fit(thefunc, bincenters,timehist, p0=p0,maxfev=6000) 
 print("BEST COEFF: " + str(popt))
 #Now, get the best fit curve's points
-bestfitfunc = thefunc(bincenters,popt[0], popt[1], popt[2],popt[3]) #for the Landau
-#bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2]) #for the Gauss
+#bestfitfunc = thefunc(bincenters,popt[0], popt[1], popt[2],popt[3]) #for the Landau
+bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2]) #for the Gauss
 #bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2],popt[3],popt[4]) #for the GaussTimesExpo
 #bestfitfunc = thefunc(bincenters,popt[0], popt[1],popt[2],popt[3],popt[4],popt[5]) #for the LandauPlusGauss 
 C2T = Chi2OverNDOF(bestfitfunc,timehist,timehist,NumVariables)
@@ -99,14 +100,14 @@ fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-plt.hist(FirstTimes,bins=binedges, label="LAPPD Hit Times")
+plt.hist(FirstTimes,bins=binedges, label="Digit Times")
 ax.axvline(TheTrueT, color = "r", \
         linewidth=4, label = "True Vertex Time")
 plt.plot(bincenters,bestfitfunc,label=r'best fit, $\frac{\chi^{2}}{NDF}=%s$'%(str(np.round(C2T,2))))
 #ax.plot(trueZvtx[0], trueXvtx[0], linestyle='none', 
 #markersize=20, label="True Vertex", marker='*')
 plt.ylabel("Entries")
-plt.xlabel("Time Residual (ns)")
+plt.xlabel("Hit times (ns)")
 leg = ax.legend(loc=1)
 leg.set_frame_on(True)
 leg.draw_frame(True)

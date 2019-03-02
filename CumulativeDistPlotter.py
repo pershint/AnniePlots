@@ -59,7 +59,7 @@ if __name__=='__main__':
     leg.set_frame_on(True)
     leg.draw_frame(True)
     plt.title("Cumulative distribution of variable %s,"%(branchname) + \
-            " MC Truth to VtxExtendedVertexFinder \n 128 PMTs + 128 LAPPDs, recoStatus==0")
+            " Full reconstruction chain \n 128 PMTs + 5 LAPPDs, recoStatus==0")
     plt.show()
     #Following would work if you want to combine individual ROOT files
     #in here, rather than using

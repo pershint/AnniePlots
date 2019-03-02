@@ -59,7 +59,7 @@ def LAPPDHitCharge(Qs,typedata,title=None):
     plt.show()
 
 if __name__=='__main__':
-    f = uproot.open("./PromptTrig_All_Comb.root")
+    f = uproot.open("./ParaComb.root")
     ftree = f.get("phaseII")
     ftree.items()
     digitQ = ftree.get("digitQ")

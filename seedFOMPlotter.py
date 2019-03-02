@@ -16,7 +16,7 @@ except:
 NBINS = 30
 #####/TUNABLES FOR GRAPH OUTPUT####
 
-f = uproot.open("./AllGridEffInd.root")
+f = uproot.open("./FullComb.root")
 ftree = f.get("phaseII")
 ftree.items()
 svFOM = ftree.get("seedVtxFOM")

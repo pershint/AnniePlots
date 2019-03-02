@@ -5,10 +5,12 @@ import scipy.optimize as scp
 import numpy as np
 import sys
 
-NBINS = 150.0
+sns.set(font_scale=2)
 
-f = uproot.open("./PromptTrig_All_Comb.root")
-#f = uproot.open("./MCT_Qgt5_Comb.root")
+NBINS = 1200
+f = uproot.open("./FullComb_vacN.root")
+#f = uproot.open("./RecoTruthComb.root")
+#f = uproot.open("./FullComb_preTrigFix.root")
 ftree = f.get("phaseII")
 ftree.items()
 digitT = ftree.get("digitT")
@@ -39,7 +41,7 @@ LAPPD_SOL_residuals = np.array([])
 LAPPD_SOL_wat_residuals = np.array([])
 for e in xrange(tot_entries):
     #Want to calculate all hit residuals based on if
-    #Light is moving at C or at C/1.33
+    #Light is moving at C or at C/1.26
     typedata = diType[e]
     pmtind = np.where(typedata==0)[0]
     lappdind = np.where(typedata==1)[0]
@@ -51,6 +53,7 @@ for e in xrange(tot_entries):
     this_TX = np.array(truX[e])
     this_TY = np.array(truY[e])
     this_TZ = np.array(truZ[e])
+    zfront = np.where(this_diZ > 0)[0]
     #Calculate speed of light residuals
     L = np.sqrt((this_diX-this_TX)**2 + (this_diY - this_TY)**2 + (this_diZ - this_TZ)**2)
     #Residuals assuming speed of light in vacuum (cm/ns)
@@ -61,7 +64,7 @@ for e in xrange(tot_entries):
     LAPPD_SOL_residuals = np.append(lappd_res_SOL,LAPPD_SOL_residuals)
     
     #Residuals assuming speed of light in water (cm/ns)
-    res_SOL_wat = this_diT - (L*1.33/29.97) - this_TT
+    res_SOL_wat = this_diT - (L*1.26/29.97) - this_TT
     pmt_res_SOL_wat = res_SOL_wat[pmtind]
     PMT_SOL_wat_residuals = np.append(pmt_res_SOL_wat,PMT_SOL_wat_residuals)
     lappd_res_SOL_wat = res_SOL_wat[lappdind]
@@ -92,9 +95,9 @@ for i in range(0,len(evnums)):
     mut = np.append(mut,muon_time)
 
 mutimebinedges = np.arange(-5.0, 20.0, 25.0/NBINS)
-ltimebinedges = np.arange(-5.0, 30.0, 35.0/NBINS)
-ptimebinedges = np.arange(-10.0, 50.0, 60.0/NBINS)
-lbinedges = np.arange(-5.0, 25.0, 30.0/NBINS)
+ltimebinedges = np.arange(-40.0, 30.0, 70.0/NBINS)
+ptimebinedges = np.arange(-40.0, 30.0, 70.0/NBINS)
+lbinedges = np.arange(-40.0, 40.0, 80.0/NBINS)
 pbinedges = np.arange(-40.0, 40.0, 80.0/NBINS)
 #Make this into a numpy histogram and we do a fit to the histogram itself
 pmt_timehist, pmt_binedges = np.histogram(PMTdiff,bins=pbinedges)
@@ -162,7 +165,7 @@ xkcd_colors = ['slate blue', 'warm pink', 'green', 'grass']
 sns.set_palette(sns.xkcd_palette(xkcd_colors))
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-#plt.hist(PMT_SOL_wat_residuals,bins=pmt_binedges,label="n=1.33")
+plt.hist(PMT_SOL_wat_residuals,bins=pmt_binedges,label="n=1.26")
 plt.hist(PMT_SOL_residuals,bins=pmt_binedges,label="n=1.0")
 plt.legend()
 plt.ylabel("Entries")
@@ -175,7 +178,7 @@ xkcd_colors = ['slate blue', 'warm pink', 'green', 'grass']
 sns.set_palette(sns.xkcd_palette(xkcd_colors))
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-#plt.hist(LAPPD_SOL_wat_residuals,bins=lappd_binedges,label="n=1.33")
+plt.hist(LAPPD_SOL_wat_residuals,bins=lappd_binedges,label="n=1.26")
 plt.hist(LAPPD_SOL_residuals,bins=lappd_binedges,label="n=1.0")
 plt.legend()
 plt.ylabel("Entries")
@@ -183,3 +186,30 @@ plt.xlabel("LAPPD hit time residuals (ns)")
 plt.title("Hit residual assuming point vertex with different n \n" +\
         "after being loaded into ToolAnalysis",fontsize=30)
 plt.show()
+
+xkcd_colors = ['warm pink','slate blue', 'green', 'grass']
+sns.set_palette(sns.xkcd_palette(xkcd_colors))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.hist(LAPPD_SOL_residuals,bins=lappd_binedges,label="LAPPD residual times",alpha=0.7)
+plt.hist(PMT_SOL_residuals,bins=pmt_binedges,label="PMT residual times")
+plt.legend()
+plt.ylabel("Entries")
+plt.xlabel("Hit time residuals (ns)")
+plt.title("Hit residual assuming point vertex (n=1.0)\n" +\
+        "after being loaded into ToolAnalysis",fontsize=30)
+plt.show()
+
+xkcd_colors = ['warm pink','slate blue', 'green', 'grass']
+sns.set_palette(sns.xkcd_palette(xkcd_colors))
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+plt.hist(LAPPD_SOL_wat_residuals,bins=lappd_binedges,label="LAPPD residual times",alpha=0.7)
+plt.hist(PMT_SOL_wat_residuals,bins=pmt_binedges,label="PMT residual times")
+plt.legend()
+plt.ylabel("Entries")
+plt.xlabel("Hit time residuals (ns)")
+plt.title("Hit residual assuming point vertex (n=1.26)\n" +\
+        "after being loaded into ToolAnalysis",fontsize=30)
+plt.show()
+

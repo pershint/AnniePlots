@@ -12,7 +12,7 @@ except:
     print("Setting entry number to plot as 0")
     eventnum = 0
 
-f = uproot.open("./AllGridEffInd.root")
+f = uproot.open("./FullComb.root")
 ftree = f.get("phaseII")
 ftree.items()
 fTVZ = ftree.get("trueVtxZ")
@@ -46,14 +46,17 @@ if recoStatus[eventnum]!=0:
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 seedx, seedy, seedz = [], [], []
-ax.scatter(seedZvtx[eventnum],seedXvtx[eventnum], seedYvtx[eventnum],label="Vertex seeds")
+ax.scatter(seedZvtx[eventnum],seedXvtx[eventnum], seedYvtx[eventnum],label="Vertex seeds",alpha=0.2)
 ax.scatter(trueZvtx[eventnum], trueXvtx[eventnum], trueYvtx[eventnum],label="True Vertex",c='black',s=60,marker='*')
+ax.scatter(pointposZvtx[eventnum], pointposYvtx[eventnum], c='red',
+           label="PointPosition Vertex", marker='*')
 ax.set_xlabel("Z position (mm)", fontsize=22)
 ax.set_ylabel("X position (mm)", fontsize=22)
 ax.set_zlabel("Y position (mm)", fontsize=22)
 for t in ax.zaxis.get_major_ticks(): t.label.set_fontsize(20)
 for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(20)
 for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(20)
+plt.legend()
 plt.title("Seed points colored by their point fit FOM in ANNIE",fontsize=34)
 plt.show()
 

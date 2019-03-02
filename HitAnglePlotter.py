@@ -7,7 +7,7 @@ import sys
 
 NBINS = 150
 
-f = uproot.open("./AllGridEffInd.root")
+f = uproot.open("./FullComb.root")
 ftree = f.get("phaseII")
 ftree.items()
 digitQ = ftree.get("digitQ")
