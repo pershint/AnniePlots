@@ -3,6 +3,8 @@ import sklearn.grid_search as sgs
 import sklearn.cross_validation as cv
 import numpy as np
 
+#for example run
+import AnnieHeatMap as ahm
 
 class KernelDensityEstimator(object):
     def __init__(self,dataframe=None):
@@ -115,3 +117,13 @@ class KernelDensityEstimator(object):
         z = np.exp(TwoDKDE.score_samples(xy_grid))
 
         return xx,yy,np.reshape(z,xx.shape)
+
+if __name__=='__main__':
+    print("WOO")
+    mymap = ahm.AnnieHeatMapMaker(rootfiles=['FullComb.root'])
+    mymap.load_dataframe()
+    mymap.AddHitAnglesToDataFrame()
+    miniframe = mymap.MakePMTHitChargeDataFrame()
+    myestimator = KernelDensityEstimator(dataframe=miniframe)
+    xx,yy,zz = myestimator.KDEEstimate2D(8.0,'hitCharges','hitAngles',xbins=1000j,
+                                         ybins=1000j)
