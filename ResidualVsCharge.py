@@ -18,7 +18,7 @@ def theplot(data):
     plt.show()
 
 if __name__=='__main__':
-    f = uproot.open("./FullComb.root")
+    f = uproot.open("./RPTest_100.root")
     ftree = f.get("phaseII")
     ftree.items()
     digitT = ftree.get("digitT")

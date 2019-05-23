@@ -88,13 +88,13 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     time = np.array(timedata)
     charge = np.array(qdata)
     #scatter plot with time as color
-    ourvmin = 9.0 #np.min(time)
-    ourvmax = 20.0 #np.max(time)
+    ourvmin = 2.0 #np.min(time)
+    ourvmax = 11.0 #np.max(time)
     sc = None
     if len(LAPPDind) > 0:
         sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=time[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     if len(pmtind) > 0:
-        sc = plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=400, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+        sc = plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=200, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     cbar = plt.colorbar(sc,label='Time (ns)')
     cbar.set_label(label='Time (ns)', size=30)
     cbar.ax.tick_params(labelsize=30)
@@ -117,7 +117,7 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
         sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=charge[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     if len(pmtind) > 0:
     
-       sc = plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=400, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+       sc = plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=200, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     cbar = plt.colorbar(sc,label='Charge')
     cbar.set_label(label='Charge', size=30)
     cbar.ax.tick_params(labelsize=30)
@@ -128,13 +128,13 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     ax.set_ylabel("Y (cm)", fontsize=34)
     for t in ax.yaxis.get_major_ticks(): t.label.set_fontsize(20)
     for t in ax.xaxis.get_major_ticks(): t.label.set_fontsize(20)
-    plt.title("Hit charges for a simulated muon production in ANNIE")
+    plt.title("Hit charges for a simulated muon production in ANNIE",fontsize=34)
     plt.show()
 
 
 
 if __name__=='__main__':
-    f = uproot.open("./FullComb.root")
+    f = uproot.open("./LiliaComb_05072019.root")
     #GIVE AN EVENT NUMBER TO LOOK AT
     try:
         eventnum = int(sys.argv[1])
@@ -176,6 +176,20 @@ if __name__=='__main__':
     markersize=20, label="True Vertex", marker='*')
     plt.ylabel("X [cm]")
     plt.xlabel("Z [cm]")
+    leg = ax.legend(loc=2)
+    leg.set_frame_on(True)
+    leg.draw_frame(True)
+    plt.title(r"Hits in ANNIE from simulated $\nu_{\mu}$ interaction producing a muon")
+    plt.show()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(diX[eventnum],diY[eventnum], linestyle='none', marker='o',
+    markersize=4, label="Digit Positions")
+    ax.plot(trueXvtx[eventnum], trueYvtx[eventnum], linestyle='none', 
+    markersize=20, label="True Vertex", marker='*')
+    plt.ylabel("Y [cm]")
+    plt.xlabel("X [cm]")
     leg = ax.legend(loc=2)
     leg.set_frame_on(True)
     leg.draw_frame(True)

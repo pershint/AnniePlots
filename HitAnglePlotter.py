@@ -7,7 +7,7 @@ import sys
 
 NBINS = 150
 
-f = uproot.open("./FullComb.root")
+f = uproot.open("./RPTest.root")
 ftree = f.get("phaseII")
 ftree.items()
 digitQ = ftree.get("digitQ")

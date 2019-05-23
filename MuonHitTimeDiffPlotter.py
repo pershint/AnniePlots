@@ -8,8 +8,8 @@ import sys
 sns.set(font_scale=2)
 
 NBINS = 1200
-f = uproot.open("./FullComb_vacN.root")
-#f = uproot.open("./RecoTruthComb.root")
+#f = uproot.open("./RPTest_100.root")
+f = uproot.open("./MCRecoEventTest.root")
 #f = uproot.open("./FullComb_preTrigFix.root")
 ftree = f.get("phaseII")
 ftree.items()
@@ -18,6 +18,7 @@ TrueVtxTime = ftree.get("trueVtxTime")
 TrueVtxX = ftree.get("trueVtxX")
 TrueVtxY = ftree.get("trueVtxY")
 TrueVtxZ = ftree.get("trueVtxZ")
+DeltaT = ftree.get("deltaVtxT")
 digitX = ftree.get("digitX")
 digitY = ftree.get("digitY")
 digitType = ftree.get("digitType")
@@ -28,6 +29,7 @@ diT = digitT.array()
 diX = digitX.array()
 diY = digitY.array()
 diZ = digitZ.array()
+diffT = DeltaT.array()
 truX = TrueVtxX.array()
 truY = TrueVtxY.array()
 truZ = TrueVtxZ.array()
@@ -41,7 +43,7 @@ LAPPD_SOL_residuals = np.array([])
 LAPPD_SOL_wat_residuals = np.array([])
 for e in xrange(tot_entries):
     #Want to calculate all hit residuals based on if
-    #Light is moving at C or at C/1.26
+    #Light is moving at C or at C/1.33
     typedata = diType[e]
     pmtind = np.where(typedata==0)[0]
     lappdind = np.where(typedata==1)[0]
@@ -64,7 +66,7 @@ for e in xrange(tot_entries):
     LAPPD_SOL_residuals = np.append(lappd_res_SOL,LAPPD_SOL_residuals)
     
     #Residuals assuming speed of light in water (cm/ns)
-    res_SOL_wat = this_diT - (L*1.26/29.97) - this_TT
+    res_SOL_wat = this_diT - (L*1.33/29.97) - this_TT
     pmt_res_SOL_wat = res_SOL_wat[pmtind]
     PMT_SOL_wat_residuals = np.append(pmt_res_SOL_wat,PMT_SOL_wat_residuals)
     lappd_res_SOL_wat = res_SOL_wat[lappdind]
@@ -165,7 +167,7 @@ xkcd_colors = ['slate blue', 'warm pink', 'green', 'grass']
 sns.set_palette(sns.xkcd_palette(xkcd_colors))
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-plt.hist(PMT_SOL_wat_residuals,bins=pmt_binedges,label="n=1.26")
+plt.hist(PMT_SOL_wat_residuals,bins=pmt_binedges,label="n=1.33")
 plt.hist(PMT_SOL_residuals,bins=pmt_binedges,label="n=1.0")
 plt.legend()
 plt.ylabel("Entries")
@@ -178,7 +180,7 @@ xkcd_colors = ['slate blue', 'warm pink', 'green', 'grass']
 sns.set_palette(sns.xkcd_palette(xkcd_colors))
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-plt.hist(LAPPD_SOL_wat_residuals,bins=lappd_binedges,label="n=1.26")
+plt.hist(LAPPD_SOL_wat_residuals,bins=lappd_binedges,label="n=1.33")
 plt.hist(LAPPD_SOL_residuals,bins=lappd_binedges,label="n=1.0")
 plt.legend()
 plt.ylabel("Entries")
@@ -209,7 +211,7 @@ plt.hist(PMT_SOL_wat_residuals,bins=pmt_binedges,label="PMT residual times")
 plt.legend()
 plt.ylabel("Entries")
 plt.xlabel("Hit time residuals (ns)")
-plt.title("Hit residual assuming point vertex (n=1.26)\n" +\
+plt.title("Hit residual assuming point vertex (n=1.33)\n" +\
         "after being loaded into ToolAnalysis",fontsize=30)
 plt.show()
 

@@ -5,13 +5,13 @@ import numpy as np
 
 sns.set_context('poster')
 
-f = uproot.open("./RecoTree.root")
+f = uproot.open("./FullComb.root")
 ftree = f.get("phaseII")
 ftree.items()
-fPVZ = ftree.get("pointPosVtxZ")
-fPVY = ftree.get("pointPosVtxY")
-fPVX = ftree.get("pointPosVtxX")
-fPVS = ftree.get("pointPosVtxStatus")
+fPVZ = ftree.get("pointPosZ")
+fPVY = ftree.get("pointPosY")
+fPVX = ftree.get("pointPosX")
+fPVS = ftree.get("pointPosStatus")
 pointPosXvtx = fPVX.array()
 print("POINTPOSX: " + str(pointPosXvtx))
 pointPosZvtx = fPVZ.array()

@@ -120,7 +120,7 @@ class KernelDensityEstimator(object):
 
 if __name__=='__main__':
     print("WOO")
-    mymap = ahm.AnnieHeatMapMaker(rootfiles=['FullComb.root'])
+    mymap = ahm.AnnieHeatMapMaker(rootfiles=['RPTest_100.root'])
     mymap.load_dataframe()
     mymap.AddHitAnglesToDataFrame()
     miniframe = mymap.MakePMTHitChargeDataFrame()
