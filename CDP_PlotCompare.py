@@ -2,7 +2,7 @@
 #Different variables output in  PhaseIITreeMaker root file.
 
 import glob
-import ROOT
+
 import sys
 import uproot
 import ROOTProcessor as rp
