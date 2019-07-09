@@ -5,12 +5,12 @@ import glob
 
 import sys
 import uproot
-import ROOTProcessor as rp
+import lib.ROOTProcessor as rp
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 sns.set_context('poster')
-sns.set(font_scale=4.0)
+sns.set(font_scale=3.0)
 
 def _rebin(cumulative_distribution,entrys_per_value):
     '''Given an array, take the mean of #entrys_per_value given and
@@ -32,11 +32,14 @@ def _buildcsum(sorted_distribution):
     h = c/(float(len(sorted_distribution)-1))
     return h*100.0
 
-def _buildcsumbins(sorted_distribution,dist_per_bin):
+def _buildcsumbins(sorted_distribution,dist_per_bin,binrange=None):
     '''Given a distribution, returns the percentage from
     0 to 100 each data point is associated with'''
     bin_height = []
-    bin_lefts = np.arange(np.min(sorted_distribution),np.max(sorted_distribution),dist_per_bin)
+    if binrange is None:
+        bin_lefts = np.arange(np.min(sorted_distribution),np.max(sorted_distribution),dist_per_bin)
+    else:
+        bin_lefts = np.arange(binrange[0], binrange[1]+dist_per_bin,dist_per_bin)
     bin_rights = bin_lefts + dist_per_bin
     for j,val in enumerate(bin_lefts):
         bin_right = val + dist_per_bin
@@ -49,11 +52,14 @@ def _buildcsumbins(sorted_distribution,dist_per_bin):
     bin_height = np.array(bin_height)*100.0
     return bin_height, bin_lefts, bin_rights
 
-def _buildbins(sorted_distribution,dist_per_bin):
+def _buildbins(sorted_distribution,dist_per_bin,binrange=None):
     '''Given a distribution, returns the percentage from
     0 to 100 each data point is associated with'''
     bin_height = []
-    bin_lefts = np.arange(np.min(sorted_distribution),np.max(sorted_distribution),dist_per_bin)
+    if binrange is None:
+        bin_lefts = np.arange(np.min(sorted_distribution),np.max(sorted_distribution),dist_per_bin)
+    else:
+        bin_lefts = np.arange(binrange[0], binrange[1]+dist_per_bin,dist_per_bin)
     bin_rights = bin_lefts + dist_per_bin
     for j,val in enumerate(bin_lefts):
         bin_right = val + dist_per_bin
@@ -75,7 +81,7 @@ def _getCLdatavaluebin(CL,CLbins,bin_lefts):
     value in the cumulative distribution's x-axis consistent with
     that CL'''
     thewin=np.where(CLbins>CL)[0][0]
-    return bin_lefts[thewin]
+    return bin_lefts[thewin], CLbins[thewin]
 
 if __name__=='__main__':
     if str(sys.argv[1])=="--help":
@@ -112,52 +118,61 @@ if __name__=='__main__':
     f2_goodfits = f2_data[f2_goodfitind]
     sorted_f1 = np.sort(f1_goodfits)
     sorted_f2 = np.sort(f2_goodfits)
+    binwidth=0
+    themax =0
+    if str(sys.argv[1]) == 'deltaVtxR':
+        binwidth=1
+    if str(sys.argv[1]) == 'deltaAngle':
+        binwidth=1
+    if str(sys.argv[1]) == 'deltaVtxR':
+        variable_str = r'$\Delta$r'
+        themax = 100
+    if str(sys.argv[1]) == 'deltaAngle':
+        variable_str = r'$\Delta \phi$'
+        themax = 50
+    f1_csum,f1_binleft,f1_binright = _buildcsumbins(sorted_f1,binwidth,binrange=[0,themax])
+    print("f1_csum: " + str(f1_csum))
+    print("f1_binleft: " + str(f1_binleft))
+    print("f1_csum: " + str(f1_csum))
+    print("f1_binleft: " + str(f1_binleft))
+    f2_csum,f2_binleft,f2_binright = _buildcsumbins(sorted_f2,binwidth,binrange=[0,themax])
+    f1_CLvalue, f1_CLvalueheight = _getCLdatavaluebin(68,f1_csum,f1_binleft)
+    f2_CLvalue, f2_CLvalueheight = _getCLdatavaluebin(68,f2_csum,f2_binleft)
     sns.set_style("whitegrid")
     sns.axes_style("darkgrid")
-    xkcd_colors = ['burnt orange', 'blue', 'black', 'green', 'grass']
-    sns.set_palette(sns.xkcd_palette(xkcd_colors))
+    xkcd_colors = ['dark teal' for x in range(len(f1_csum)*2)]
+    csum2_colors = ['adobe' for x in range(len(f2_csum)*2)]
+    colors = xkcd_colors + csum2_colors
+    sns.set_palette(sns.xkcd_palette(colors))
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    binwidth=0
-    if str(sys.argv[1]) == 'deltaVtxR':
-        binwidth=4
-    if str(sys.argv[1]) == 'deltaAngle':
-        binwidth=2
-    f1_csum,f1_binleft,f1_binright = _buildcsumbins(sorted_f1,binwidth)
-    print("f1_csum: " + str(f1_csum))
-    print("f1_binleft: " + str(f1_binleft))
-    print("f1_csum: " + str(f1_csum))
-    print("f1_binleft: " + str(f1_binleft))
-    f2_csum,f2_binleft,f2_binright = _buildcsumbins(sorted_f2,binwidth)
-    f1_CLvalue = _getCLdatavaluebin(68,f1_csum,f1_binleft)
-    f2_CLvalue = _getCLdatavaluebin(68,f2_csum,f2_binleft)
-    ax.axvline(f1_CLvalue, ymax=0.68,ymin=0,color='black', linewidth=6, label="68% CL")
-    ax.axvline(f2_CLvalue, ymax=0.68, ymin=0,color='black', linewidth=6)
+    maxclwidth = np.max([f1_CLvalue, f2_CLvalue])
+    ax.axhline(68, xmin=0, xmax=(maxclwidth/themax),color='black', linestyle='--',linewidth=4, label="68% CL",alpha=0.75)
+    ax.axvline(f1_CLvalue, ymin=0, ymax=f1_CLvalueheight/100.,color='black', linestyle='--',linewidth=4, alpha=0.75)
+    ax.axvline(f2_CLvalue, ymin=0, ymax=f2_CLvalueheight/100.,color='black', linestyle='--',linewidth=4, alpha=0.75)
     for j,val in enumerate(f1_csum):
         if j == len(f1_csum)-1:
             break
         elif j == 0:
-            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-',color='red',label=f1_name)
-            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_csum[j+1]],linewidth=6,linestyle='-',color='red')
+            ax.plot([0,f1_binleft[j]],[0,0],linewidth=6,linestyle='-',label=f1_name)
+            ax.plot([f1_binleft[j],f1_binleft[j]],[0,val],linewidth=6,linestyle='-')
+            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-',label=f1_name)
+            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_csum[j+1]],linewidth=6,linestyle='-')
         else:
-            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-',color='red')
-            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_csum[j+1]],linewidth=6,linestyle='-',color='red')
+            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-')
+            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_csum[j+1]],linewidth=6,linestyle='-')
     for j,val in enumerate(f2_csum):
         if j == len(f2_csum)-1:
             break
         elif j == 0:
-            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-',color='blue',label=f2_name)
-            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_csum[j+1]],linewidth=6,linestyle='-',color='blue')
+            ax.plot([0,f2_binleft[j]],[0,0],linewidth=6,linestyle='-',label=f2_name)
+            ax.plot([f2_binleft[j],f2_binleft[j]],[0,val],linewidth=6,linestyle='-')
+            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-',label=f2_name)
+            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_csum[j+1]],linewidth=6,linestyle='-')
         else:
-            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-',color='blue')
-            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_csum[j+1]],linewidth=6,linestyle='-',color='blue')
+            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-')
+            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_csum[j+1]],linewidth=6,linestyle='-')
     plt.ylabel("%% Probability/%s %s "%(str(binwidth),str(sys.argv[2])))
-    if str(sys.argv[1]) == 'deltaVtxR':
-        variable_str = r'$\Delta$r'
-        themax = 150
-    if str(sys.argv[1]) == 'deltaAngle':
-        variable_str = r'$\Delta \phi$'
-        themax = 50
     plt.xlim(0,themax)
     plt.xlabel(variable_str+" [%s]"%(var_unit))
     plt.ylim(0,100)
@@ -168,40 +183,46 @@ if __name__=='__main__':
     plt.show()
     
     #Make data histogram plot
+    if str(sys.argv[1]) == 'deltaVtxR':
+        variable_str = r'$\Delta$r'
+        themax = 100
+    if str(sys.argv[1]) == 'deltaAngle':
+        variable_str = r'$\Delta \phi$'
+        themax = 50
+    f2_hist,f2_binleft,f2_binright = _buildbins(sorted_f2,binwidth,binrange=[0,themax])
+    f1_hist,f1_binleft,f1_binright = _buildbins(sorted_f1,binwidth,binrange=[0,themax])
     sns.set_style("whitegrid")
     sns.axes_style("darkgrid")
-    xkcd_colors = ['red', 'blue', 'black', 'green', 'grass']
-    sns.set_palette(sns.xkcd_palette(xkcd_colors))
+    xkcd_colors = ['dark teal' for x in range(len(f1_hist)*2)]
+    csum2_colors = ['adobe' for x in range(len(f2_hist)*2)]
+    colors = xkcd_colors + csum2_colors
+    sns.set_palette(sns.xkcd_palette(colors))
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
 
-    f2_hist,f2_binleft,f2_binright = _buildbins(sorted_f2,binwidth)
-    f1_hist,f1_binleft,f1_binright = _buildbins(sorted_f1,binwidth)
     for j,val in enumerate(f1_hist):
         if j == len(f1_hist)-1:
             break
         elif j == 0:
-            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-',color='red',label=f1_name)
-            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_hist[j+1]],linewidth=6,linestyle='-',color='red')
+            ax.plot([0,f1_binleft[j]],[0,0],linewidth=6,linestyle='-',label=f1_name)
+            ax.plot([f1_binleft[j],f1_binleft[j]],[0,val],linewidth=6,linestyle='-')
+            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-',label=f1_name)
+            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_hist[j+1]],linewidth=6,linestyle='-')
         else:
-            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-',color='red')
-            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_hist[j+1]],linewidth=6,linestyle='-',color='red')
+            ax.plot([f1_binleft[j],f1_binright[j]],[val,val],linewidth=6,linestyle='-')
+            ax.plot([f1_binright[j],f1_binright[j]],[val,f1_hist[j+1]],linewidth=6,linestyle='-')
     for j,val in enumerate(f2_hist):
         if j == len(f2_hist)-1:
             break
         elif j == 0:
-            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-',color='blue',label=f2_name)
-            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_hist[j+1]],linewidth=6,linestyle='-',color='blue')
+            ax.plot([0,f2_binleft[j]],[0,0],linewidth=6,linestyle='-',label=f2_name)
+            ax.plot([f2_binleft[j],f2_binleft[j]],[0,val],linewidth=6,linestyle='-')
+            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-',label=f2_name)
+            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_hist[j+1]],linewidth=6,linestyle='-')
         else:
-            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-',color='blue')
-            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_hist[j+1]],linewidth=6,linestyle='-',color='blue')
+            ax.plot([f2_binleft[j],f2_binright[j]],[val,val],linewidth=6,linestyle='-')
+            ax.plot([f2_binright[j],f2_binright[j]],[val,f2_hist[j+1]],linewidth=6,linestyle='-')
     plt.ylabel("Counts/%s %s "%(str(binwidth),str(sys.argv[2])))
-    if str(sys.argv[1]) == 'deltaVtxR':
-        variable_str = r'$\Delta$r'
-        themax = 150
-    if str(sys.argv[1]) == 'deltaAngle':
-        variable_str = r'$\Delta \phi$'
-        themax = 50
     plt.xlim(0,themax)
     plt.xlabel(variable_str+" [%s]"%(var_unit))
     themax = np.max([np.max(f1_hist),np.max(f2_hist)])

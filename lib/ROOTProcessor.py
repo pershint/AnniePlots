@@ -47,8 +47,9 @@ class ROOTProcessor(object):
         print(all_data)
         for dattype in all_data:
             if branches_to_get is not None:
-                if dattype not in branches_to_get:
+                if dattype.decode('utf-8') not in branches_to_get:
                     continue
+            print("LET'S PROCESS SOME ENTRIES")
             thistype_processed = ftree.get(dattype).array()
             self._appendProcessedEntry(dattype,thistype_processed)
             
@@ -64,12 +65,14 @@ class ROOTProcessor(object):
             thistype_processed [array]
             numpy array of data pulled from a ROOT file using uproot.
         '''
-        if dattype in self.processed_data:
+        dattype_key = dattype.decode('utf-8')
+        print(dattype_key)
+        if dattype_key in self.processed_data:
             thistype_proclist = thistype_processed.tolist()
-            self.processed_data[dattype] = self.processed_data[dattype] + \
+            self.processed_data[dattype_key] = self.processed_data[dattype] + \
                                            thistype_proclist
         else:
             self.processed_data[dattype] = []
             thistype_proclist = thistype_processed.tolist()
-            self.processed_data[dattype] = self.processed_data[dattype] + \
+            self.processed_data[dattype_key] = self.processed_data[dattype] + \
                                            thistype_proclist

@@ -1,7 +1,9 @@
 import sklearn.neighbors as skn
 import sklearn.grid_search as sgs
 import sklearn.cross_validation as cv
+import seaborn as sns
 import numpy as np
+import matplotlib.pyplot as plt
 
 #for example run
 import AnnieHeatMap as ahm
@@ -48,7 +50,7 @@ class KernelDensityEstimator(object):
         if isinstance(self.df[datalabel][0],np.ndarray):
             print("WERE IN HERE")
             data_arr = []
-            for i in xrange(len(self.df[datalabel])):
+            for i in range(len(self.df[datalabel])):
                 data_arr = data_arr + list(self.df[datalabel][0])
             data=np.array(data_arr)
         if len(data)>500:
@@ -74,7 +76,7 @@ class KernelDensityEstimator(object):
         if isinstance(self.df[datalabel][0],np.ndarray):
             print("WERE IN HERE")
             data_arr = []
-            for i in xrange(len(self.df[datalabel])):
+            for i in range(len(self.df[datalabel])):
                 data_arr = data_arr + list(self.df[datalabel][0])
             data=np.array(data_arr)
         if xlims is None:
@@ -97,7 +99,7 @@ class KernelDensityEstimator(object):
         if isinstance(self.df[datalabelx][0],np.ndarray):
             print("WERE IN HERE")
             datax_arr = []
-            for i in xrange(len(self.df[datalabelx])):
+            for i in range(len(self.df[datalabelx])):
                 datax_arr = datax_arr + list(self.df[datalabelx][0])
             datax=np.array(datax_arr)
         if isinstance(self.df[datalabely][0],np.ndarray):
@@ -120,10 +122,18 @@ class KernelDensityEstimator(object):
 
 if __name__=='__main__':
     print("WOO")
-    mymap = ahm.AnnieHeatMapMaker(rootfiles=['RPTest_100.root'])
+    mymap = ahm.AnnieHeatMapMaker(rootfiles=['PMTReco_05202019.root'])
     mymap.load_dataframe()
-    mymap.AddHitAnglesToDataFrame()
-    miniframe = mymap.MakePMTHitChargeDataFrame()
+    miniframe = mymap.MakeYThetaDataFrame()
+    sns.kdeplot(miniframe["Theta"],miniframe["Y"], shade=True)
+    plt.show()
     myestimator = KernelDensityEstimator(dataframe=miniframe)
-    xx,yy,zz = myestimator.KDEEstimate2D(8.0,'hitCharges','hitAngles',xbins=1000j,
-                                         ybins=1000j)
+    xx,yy,zz = myestimator.KDEEstimate2D(300,'Y','Theta',xbins=100j,ybins=100j)
+    #print("WOO")
+    #mymap = ahm.AnnieHeatMapMaker(rootfiles=['RPTest_100.root'])
+    #mymap.load_dataframe()
+    #mymap.AddHitAnglesToDataFrame()
+    #miniframe = mymap.MakePMTHitChargeDataFrame()
+    #myestimator = KernelDensityEstimator(dataframe=miniframe)
+    #xx,yy,zz = myestimator.KDEEstimate2D(8.0,'hitCharges','hitAngles',xbins=1000j,
+    #                                     ybins=1000j)

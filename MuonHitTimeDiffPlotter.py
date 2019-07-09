@@ -9,7 +9,7 @@ sns.set(font_scale=2)
 
 NBINS = 1200
 #f = uproot.open("./RPTest_100.root")
-f = uproot.open("./MCRecoEventTest.root")
+f = uproot.open("./LLComb_DefaultX.root")
 #f = uproot.open("./FullComb_preTrigFix.root")
 ftree = f.get("phaseII")
 ftree.items()
@@ -41,7 +41,7 @@ PMT_SOL_residuals = np.array([])
 PMT_SOL_wat_residuals = np.array([])
 LAPPD_SOL_residuals = np.array([])
 LAPPD_SOL_wat_residuals = np.array([])
-for e in xrange(tot_entries):
+for e in range(tot_entries):
     #Want to calculate all hit residuals based on if
     #Light is moving at C or at C/1.33
     typedata = diType[e]

@@ -10,7 +10,7 @@ def IDsInRange(xdata, ydata, zdata, IDdata, ymin, ymax, thetamin, thetamax):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     theta = []
-    for i in xrange(len(xdata)):
+    for i in range(len(xdata)):
         thistheta = None
         x = xdata[i]
         z = zdata[i]
@@ -52,11 +52,9 @@ def IDsInRange(xdata, ydata, zdata, IDdata, ymin, ymax, thetamin, thetamax):
     plt.title("LAPPDIDs in y and theta region identified")
     plt.show()
 
-def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+def XZ_ToTheta(xdata, zdata):
     theta = []
-    for i in xrange(len(xdata)):
+    for i in range(len(xdata)):
         thistheta = None
         x = xdata[i]
         z = zdata[i]
@@ -78,11 +76,14 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
         else:
             thistheta =  (360.0 - thistheta)
 
-        print(thistheta)
         theta.append(thistheta) #yeah that's confusing labeling
-    y = ydata
-    y = np.array(y)
-    theta = np.array(theta)
+    return np.array(theta)
+
+def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    y = np.array(ydata)
+    theta = XZ_ToTheta(xdata,zdata)
     pmtind = np.where(typedata==0)[0]
     LAPPDind = np.where(typedata==1)[0]
     time = np.array(timedata)
@@ -92,7 +93,7 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     ourvmax = 11.0 #np.max(time)
     sc = None
     if len(LAPPDind) > 0:
-        sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=time[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+        sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=time[LAPPDind], s=30,marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     if len(pmtind) > 0:
         sc = plt.scatter(theta[pmtind],y[pmtind],c=time[pmtind],s=200, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     cbar = plt.colorbar(sc,label='Time (ns)')
@@ -114,7 +115,7 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
     ourvmin = np.min(charge)
     ourvmax = np.max(charge)
     if len(LAPPDind) > 0:
-        sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=charge[LAPPDind], marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
+        sc = plt.scatter(theta[LAPPDind],y[LAPPDind],c=charge[LAPPDind], s=30, marker='o',label='LAPPD hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
     if len(pmtind) > 0:
     
        sc = plt.scatter(theta[pmtind],y[pmtind],c=charge[pmtind],s=200, marker='o',label='PMT hit',cmap=cm.jet,vmin=ourvmin, vmax=ourvmax)
@@ -134,7 +135,7 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
 
 
 if __name__=='__main__':
-    f = uproot.open("./LiliaComb_05072019.root")
+    f = uproot.open("./LLComb_DefaultX.root")
     #GIVE AN EVENT NUMBER TO LOOK AT
     try:
         eventnum = int(sys.argv[1])
@@ -221,4 +222,4 @@ if __name__=='__main__':
     plt.show()
     
     YVSTheta(diX[eventnum],diY[eventnum],diZ[eventnum],diType[eventnum],diTime[eventnum],diQ[eventnum])
-    IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],-10,10,-50,-40)
+    IDsInRange(diX[eventnum],diY[eventnum],diZ[eventnum],diID[eventnum],-10,10,40, 60)

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import HitsPlotter as hp
 sns.set_context('poster')
 sns.set_style("darkgrid")
 import os,sys,time
@@ -43,12 +44,12 @@ class NtupleToDataframe(object):
             branches = ftree.allkeys()
             for branch in branches:
                 if branch not in dataframe:
-                    dataframe[branch] = list(ftree.get(branch).array())
-                elif dataframe[branch][0] is isinstance(np.ndarray):
-                    dataframe[branch] = list(dataframe[branch]) + \
+                    dataframe[branch.decode('utf-8')] = list(ftree.get(branch).array())
+                elif dataframe[branch.decode('utf-8')][0] is isinstance(np.ndarray):
+                    dataframe[branch.decode('utf-8')] = list(dataframe[branch]) + \
                                         list(ftree.get(branch).array())
                 else:
-                    dataframe[branch] = dataframe[branch] + \
+                    dataframe[branch.decode('utf-8')] = dataframe[branch] + \
                                         list(ftree.get(branch).array())
                     #dataframe[branch] = np.append(dataframe[branch],
                     #                    ftree.get(branch).array())
@@ -81,7 +82,7 @@ class AnnieHeatMapMaker(NtupleToDataframe):
             return
         miniframe = {"hitCharges": [], "hitAngles": []}
         print("DATAFRAME SIZE IS: " + str(self.dataframe.size))
-        for i in xrange(len(self.dataframe["trueVtxX"])):
+        for i in range(len(self.dataframe["trueVtxX"])):
             diType = self.dataframe['digitType'][i]
             PMTs = np.where(diType==0)[0]
             digitQ = self.dataframe['digitQ'][i][PMTs]
@@ -101,6 +102,7 @@ class AnnieHeatMapMaker(NtupleToDataframe):
         #plt.colorbar(g,cax=cbar_ax)
         plt.show()
 
+
     def AddHitAnglesToDataFrame(self):
         if self.dataframe is None:
             print("You must load a dataframe...")
@@ -108,7 +110,7 @@ class AnnieHeatMapMaker(NtupleToDataframe):
         miniframe = {"hitCharges": [], "hitAngles": []}
         print("DATAFRAME SIZE IS: " + str(self.dataframe.size))
         allhitangles = []
-        for i in xrange(len(self.dataframe["trueVtxX"])):
+        for i in range(len(self.dataframe["trueVtxX"])):
             digitX = self.dataframe["digitX"][i]
             digitY = self.dataframe["digitY"][i]
             digitZ = self.dataframe["digitZ"][i]
@@ -124,7 +126,7 @@ class AnnieHeatMapMaker(NtupleToDataframe):
             hitdirY = digitY-trueVtxY
             hitdirZ = digitZ-trueVtxZ
             hitangles = []
-            for j in xrange(len(hitdirX)):
+            for j in range(len(hitdirX)):
                 hitdir = np.array([digitX[j]-trueVtxX,digitY[j]-trueVtxY,
                                digitZ[j]-trueVtxZ])
                 hitdir = hitdir/np.sqrt(np.dot(hitdir,hitdir))
@@ -140,7 +142,7 @@ class AnnieHeatMapMaker(NtupleToDataframe):
             return
         miniframe = {"hitCharges": [], "hitAngles": []}
         print("DATAFRAME SIZE IS: " + str(self.dataframe.size))
-        for i in xrange(len(self.dataframe["trueVtxX"])):
+        for i in range(len(self.dataframe["trueVtxX"])):
             diType = self.dataframe['digitType'][i]
             PMTs = np.where(diType==0)[0]
             digitQ = self.dataframe['digitQ'][i][PMTs]
@@ -149,3 +151,18 @@ class AnnieHeatMapMaker(NtupleToDataframe):
             miniframe["hitAngles"] = miniframe["hitAngles"] + list(hitangles)
         miniframe = pd.DataFrame(miniframe)
         return miniframe
+
+    def MakeYThetaDataFrame(self):
+        if self.dataframe is None:
+            print("You must load a dataframe...")
+            return
+        miniframe = {"Y": [], "Theta": []}
+        print("DATAFRAME SIZE IS: " + str(self.dataframe.size))
+        allhitangles = []
+        for i in range(len(self.dataframe["trueVtxX"])):
+            digitX = self.dataframe["digitX"][i]
+            digitY = self.dataframe["digitY"][i]
+            digitZ = self.dataframe["digitZ"][i]
+            miniframe["Y"] = miniframe["Y"] + list(digitY)
+            miniframe["Theta"] = miniframe["Theta"] +list(hp.XZ_ToTheta(digitX,digitZ))
+        return pd.DataFrame(miniframe)
