@@ -135,7 +135,7 @@ def YVSTheta(xdata, ydata, zdata,typedata,timedata,qdata):
 
 
 if __name__=='__main__':
-    f = uproot.open("./LLComb_DefaultX.root")
+    f = uproot.open("./LongLAPPD_Default.root")
     #GIVE AN EVENT NUMBER TO LOOK AT
     try:
         eventnum = int(sys.argv[1])

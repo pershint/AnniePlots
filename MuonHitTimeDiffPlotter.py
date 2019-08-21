@@ -9,7 +9,7 @@ sns.set(font_scale=2)
 
 NBINS = 1200
 #f = uproot.open("./RPTest_100.root")
-f = uproot.open("./LLComb_DefaultX.root")
+f = uproot.open("./LongLAPPD_Default.root")
 #f = uproot.open("./FullComb_preTrigFix.root")
 ftree = f.get("phaseII")
 ftree.items()
