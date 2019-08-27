@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 sns.set_context('poster')
-sns.set(font_scale=4.0)
+sns.set(font_scale=3.0)
 
 if __name__=='__main__':
     if str(sys.argv[1])=="--help":
@@ -56,18 +56,18 @@ if __name__=='__main__':
 
     sns.set_style("whitegrid")
     sns.axes_style("darkgrid")
-    xkcd_colors = ['purple', 'red',  'cobalt', 'blue', 'cobalt']
+    xkcd_colors = ['red', 'grass',  'black', 'blue', 'cobalt']
     sns.set_palette(sns.xkcd_palette(xkcd_colors))
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     plt.xlabel('nhits')
     plt.ylabel('events')
     for key in LAPPDHits:
-        if key not in [13,14,15]:
+        if key not in [14]:
             continue
         #Plot a histogram of each LAPPD's nhits data
         plt.hist(LAPPDHits[key], range=(0,300), bins=150, 
-                histtype='step',linewidth=4,label='LAPPD ID %s'%(str(key)))
+                linewidth=4,label='LAPPD ID %s'%(str(key)),histtype="step")
     leg = ax.legend(loc=4,fontsize=24)
     leg.set_frame_on(True)
     leg.draw_frame(True)

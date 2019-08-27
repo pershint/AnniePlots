@@ -13,6 +13,8 @@ from scipy.ndimage import gaussian_filter
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 import numpy as np
+import pandas as pd
+
 sns.set_context('poster')
 sns.set(font_scale=2.0)
 
@@ -46,7 +48,7 @@ def CartToPolar(X,Z):
         phi.append(thisphi)
     return np.array(r),np.array(phi)
 
-def XZ_means(X,Z,variable,ang_bins=10,rad_bins=5):
+def XZ_means_radial(X,Z,variable,ang_bins=10,rad_bins=5):
     '''
     Given the data, produce radial and angular bin values where the
     value for each bin is the mean of the given variable in the valid range.
@@ -73,9 +75,30 @@ def XZ_means(X,Z,variable,ang_bins=10,rad_bins=5):
             theavgval =np.average(variable[thebinvals])
             var_avgbin.append(theavgval)
     return np.array(r_avgbin),np.array(phi_avgbin),np.array(var_avgbin)
-            
 
-def ContourMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-30.0,30.0],ngridx=30, ngridz=30):
+def XZ_means(X,Z,variable,x_bins=10,z_bins=5):
+    '''
+    Given the data, produce radial and angular bin values where the
+    value for each bin is the mean of the given variable in the valid range.
+    '''
+    x_bins = []
+    z_bins = []
+    for i,aval in enumerate(angular_bins):
+        if i==0: continue
+        for j,rval in enumerate(radial_bins):
+            if j==0: continue
+            r_avgbin.append(radial_bins[j-1] + rad_res/2.)
+            phi_avgbin.append(angular_bins[i-1] + ang_res/2.)
+            #Now, Get the variables fitting into this r/angle bin
+            binvalinds1 = np.where((r > radial_bins[j-1]) & (r < radial_bins[j]))[0]
+            binvalinds2 = np.where((phi > angular_bins[i-1]) & (phi < angular_bins[i]))[0]
+            thebinvals = np.intersect1d(binvalinds1,binvalinds2)
+            theavgval =np.average(variable[thebinvals])
+            var_avgbin.append(theavgval)
+    return np.array(r_avgbin),np.array(phi_avgbin),np.array(var_avgbin)
+
+
+def ContourMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-50.0,50.0],ngridx=30, ngridz=30):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     x, z, dvr = [], [], []
@@ -99,7 +122,7 @@ def ContourMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-30.0,30.0],ngridx=30, ngridz=30)
     ax1.set_title("Best fit contour using linear interpolation")
     plt.show()
 
-def GridMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-30.0,30.0],ngridx=30, ngridz=30):
+def GridMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-50.0,50.0],ngridx=30, ngridz=30):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     x, z, dvr = [], [], []
@@ -118,6 +141,47 @@ def GridMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-30.0,30.0],ngridx=30, ngridz=30):
     im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)))
     fig.colorbar(im)
     ax1.set_title("Best fit Reco resolution grid using linear interpolation")
+    plt.show()
+
+def FOMMap_XZSlice(X,Y,Z,FOM,yrange=[-50.0,50.0],ngridx=30, ngridz=30):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    x, z, dvr = [], [], []
+    valid_ind = np.where((Y>yrange[0]) & (Y<yrange[1]))[0]
+    x = np.array(X[valid_ind])
+    z = np.array(Z[valid_ind])
+    fom = np.array(FOM[valid_ind])
+    #Perform linear interpolation of the data (x,z) on a grid
+    #Defined by (xi, zi) as seen in the Matplotlib examples
+    xi = np.linspace(np.min(x), np.max(x), ngridx)
+    zi = np.linspace(np.min(z), np.max(z), ngridz)
+    Zi, Xi = np.meshgrid(zi,xi)
+    points = (z,x)
+    grid_test = griddata(points, fom, (Zi,Xi), method='linear')
+    grid_test = gaussian_filter(grid_test,sigma=0.8)
+    im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)))
+    fig.colorbar(im)
+    ax1.set_title("Best fit FOM grid using linear interpolation")
+    plt.show()
+
+def TwoDHist_XZSlice(X,Y,Z,yrange=[-30.0,30.0]):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    x, z = [], []
+    valid_ind = np.where((Y>yrange[0]) & (Y<yrange[1]))[0]
+    x = np.array(X[valid_ind])
+    z = np.array(Z[valid_ind])
+    data = {"true_X":x, "true_Z":z}
+    pd_data = pd.DataFrame(data)
+    g = sns.jointplot("true_Z","true_X",data=pd_data,kind="hex",
+            joint_kws=dict(gridsize=15),
+            stat_func=None).set_axis_labels("True Z-Position (cm)","True X-Position (cm)")
+    plt.subplots_adjust(left=0.2,right=0.8,
+            top=0.95,bottom=0.2)
+    cbar_ax = g.fig.add_axes([0.85,0.2,0.05,0.62])
+    plt.colorbar(cax=cbar_ax)
+    g.fig.suptitle("Histogram of events in Y-range[%d,%d]\n"%(yrange[0],yrange[1]) + \
+            "Successful reconstruction, muon stops in MRD")
     plt.show()
 
 if __name__=='__main__':
@@ -142,15 +206,16 @@ if __name__=='__main__':
     f1_trueVtxX = np.array(f1data['trueVtxX'])[goodfit_inds]
     f1_trueVtxY = np.array(f1data['trueVtxY'])[goodfit_inds]
     f1_trueVtxZ = np.array(f1data['trueVtxZ'])[goodfit_inds]
+    f1_fom = f1_fom[goodfit_inds]
     f1_deltaangle = np.array(f1data['deltaAngle'])[goodfit_inds]
     f1_deltar = np.array(f1data['deltaVtxR'])[goodfit_inds]
-    #So, what plots do we want to make...
-    #Given maxY and minY, make a radial heatmap of the efficiency
-    #Given maxY and minY, Get the rough 68%CL resolution on deltaAngle
-    #TODO: Need to pick only events with a valid recoVtxFOM
-    rbin, phibin, valavg = XZ_means(f1_trueVtxX,f1_trueVtxZ,f1_deltar,ang_bins=30,rad_bins=10)
+    print("NUM EVENTS AFTER ONLY GETTING GOOD FITS: %i"%(len(f1_deltar))) 
+    
+    rbin, phibin, valavg = XZ_means_radial(f1_trueVtxX,f1_trueVtxZ,f1_deltar,ang_bins=30,rad_bins=10)
     zbin = np.array(rbin)*np.cos(np.array(phibin))
     xbin = np.array(rbin)*np.sin(np.array(phibin))
     ybin = np.zeros(len(zbin))
-    ContourMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_deltar,yrange=[-30,30])
-    GridMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_deltar,yrange=[-30,30])
+    ContourMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_deltar,yrange=[-50,50])
+    GridMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_deltar,yrange=[-50,50])
+    FOMMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_fom,yrange=[-50,50])
+    TwoDHist_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,yrange=[-50,50])
