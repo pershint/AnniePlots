@@ -76,39 +76,26 @@ def XZ_means_radial(X,Z,variable,ang_bins=10,rad_bins=5):
             var_avgbin.append(theavgval)
     return np.array(r_avgbin),np.array(phi_avgbin),np.array(var_avgbin)
 
-def XZ_means(X,Y,Z,variable,x_numbins=10,z_numbins=10,yrange=None):
+def XZ_means(X,Z,variable,x_bins=10,z_bins=5):
     '''
-    Given the data, produce the X and Z bin values where the
+    Given the data, produce radial and angular bin values where the
     value for each bin is the mean of the given variable in the valid range.
     '''
-    x_res = (np.max(X) - np.min(X))/float(x_numbins+1)
-    z_res = (np.max(Z) - np.min(Z))/float(z_numbins+1)
-    x_bins = np.arange(np.min(X),np.max(X),x_res)
-    z_bins = np.arange(np.min(Z),np.max(Z),z_res)
-    x_ctrbin = []
-    z_ctrbin = []
-    var_avgbin=np.zeros(x_numbins*z_numbins)
-    var_avgbin = var_avgbin.reshape(x_numbins,z_numbins)
-    var_stdbin=np.zeros(x_numbins*z_numbins)
-    var_stdbin = var_stdbin.reshape(x_numbins,z_numbins)
-    for i,xval in enumerate(x_bins):
+    x_bins = []
+    z_bins = []
+    for i,aval in enumerate(angular_bins):
         if i==0: continue
-        x_ctrbin.append(xval - x_res/2.)
-        for j,zval in enumerate(z_bins):
+        for j,rval in enumerate(radial_bins):
             if j==0: continue
-            z_ctrbin.append(zval + z_res/2.)
+            r_avgbin.append(radial_bins[j-1] + rad_res/2.)
+            phi_avgbin.append(angular_bins[i-1] + ang_res/2.)
             #Now, Get the variables fitting into this r/angle bin
-            binvalinds1 = np.where((X > x_bins[i-1]) & (X < x_bins[i]))[0]
-            binvalinds2 = np.where((Z > z_bins[j-1]) & (Z < z_bins[j]))[0]
+            binvalinds1 = np.where((r > radial_bins[j-1]) & (r < radial_bins[j]))[0]
+            binvalinds2 = np.where((phi > angular_bins[i-1]) & (phi < angular_bins[i]))[0]
             thebinvals = np.intersect1d(binvalinds1,binvalinds2)
-            if yrange is not None:
-                binvalinds3 = np.where((Y < yrange[1]) & (Y > yrange[0]))[0]
-                thebinvals = np.intersect1d(thebinvals, binvalinds3)
             theavgval =np.average(variable[thebinvals])
-            thestdval =np.std(variable[thebinvals])
-            var_avgbin[i-1][j-1]+=theavgval
-            var_stdbin[i-1][j-1]+=thestdval
-    return np.array(x_ctrbin),np.array(z_ctrbin),var_avgbin, var_stdbin
+            var_avgbin.append(theavgval)
+    return np.array(r_avgbin),np.array(phi_avgbin),np.array(var_avgbin)
 
 
 def ContourMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-50.0,50.0],ngridx=60, ngridz=60):
@@ -135,7 +122,7 @@ def ContourMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-50.0,50.0],ngridx=60, ngridz=60)
     ax1.set_title("Best fit contour using linear interpolation")
     plt.show()
 
-def GridMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-50.0,50.0],resol=None,ngridx=30, ngridz=30):
+def GridMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-50.0,50.0],ngridx=30, ngridz=30):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     x, z, dvr = [], [], []
@@ -153,20 +140,15 @@ def GridMap_XZSlice(X,Y,Z,deltaVtxR,yrange=[-50.0,50.0],resol=None,ngridx=30, ng
     points = (z,x)
     grid_test = griddata(points, dvr, (Zi,Xi), method='linear')
     grid_test = gaussian_filter(grid_test,sigma=0.8)
-    im = None
-    if resol is not None:
-        im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)),vmin=resol[0],vmax=resol[1])
-    else:
-        im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)))
+    im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)))
     cbar = fig.colorbar(im)
-    cbar.set_label("Reco. position resolution (cm)")
-    ax1.set_title("Reco. resolution in tank, yrange [%d,%d] cm\n"%(yrange[0],yrange[1]) + \
-    "(fit to data using linear interpolation)")
+    cbar.set_label("Reco. resolution (cm)")
+    ax1.set_title("Reco. resolution in tank, yrange [-50,50] cm\n(fit to data using linear interpolation)")
     ax1.set_ylabel("True X-Position (cm)")
     ax1.set_xlabel("True Z-Position (cm)")
     plt.show()
 
-def FOMMap_XZSlice(X,Y,Z,FOM,yrange=[-50.0,50.0],resol=None,ngridx=30, ngridz=30):
+def FOMMap_XZSlice(X,Y,Z,FOM,yrange=[-50.0,50.0],ngridx=30, ngridz=30):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     x, z, dvr = [], [], []
@@ -174,7 +156,6 @@ def FOMMap_XZSlice(X,Y,Z,FOM,yrange=[-50.0,50.0],resol=None,ngridx=30, ngridz=30
     x = np.array(X[valid_ind])
     z = np.array(Z[valid_ind])
     fom = np.array(FOM[valid_ind])
-    fom = fom-90
     #Perform linear interpolation of the data (x,z) on a grid
     #Defined by (xi, zi) as seen in the Matplotlib examples
     xi = np.linspace(np.min(x), np.max(x), ngridx)
@@ -183,14 +164,10 @@ def FOMMap_XZSlice(X,Y,Z,FOM,yrange=[-50.0,50.0],resol=None,ngridx=30, ngridz=30
     points = (z,x)
     grid_test = griddata(points, fom, (Zi,Xi), method='linear')
     grid_test = gaussian_filter(grid_test,sigma=0.8)
-    if resol is not None:
-        im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)),vmin=resol[0],vmax=resol[1])
-    else:
-        im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)))
+    im = plt.imshow(grid_test, extent = (np.min(z), np.max(z), np.min(x), np.max(x)))
     cbar = fig.colorbar(im)
-    cbar.set_label("FOM - 90")
-    ax1.set_title("(RecoFOM-90)in tank, yrange [%d,%d] cm\n"%(yrange[0],yrange[1]) + \
-    "(fit to data using linear interpolation)")
+    cbar.set_label("Reco. resolution (cm)")
+    ax1.set_title("Reco. FOM in tank, yrange [-50,50] cm\n(fit to data using linear interpolation)")
     ax1.set_ylabel("True X-Position (cm)")
     ax1.set_xlabel("True Z-Position (cm)")
     plt.show()
@@ -241,74 +218,12 @@ if __name__=='__main__':
     f1_deltaangle = np.array(f1data['deltaAngle'])[goodfit_inds]
     f1_deltar = np.array(f1data['deltaVtxR'])[goodfit_inds]
     print("NUM EVENTS AFTER ONLY GETTING GOOD FITS: %i"%(len(f1_deltar))) 
- 
-    XBINS=20
-    ZBINS=20
-    YMIN=-25
-    YMAX=25
-    RESMIN = 0
-    RESMAX = 100
-    xbinctr, zbinctr,  valavg,valstd= XZ_means(f1_trueVtxX,f1_trueVtxY,
-            f1_trueVtxZ,f1_deltar,x_numbins=XBINS,z_numbins=ZBINS,yrange=[YMIN,YMAX])
-    Xbinctr, Zbinctr = np.meshgrid(xbinctr, zbinctr) 
-    print(valavg)
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = ax1.imshow(valavg,vmin=RESMIN, vmax=RESMAX)
-    cbar = fig.colorbar(im)
-    cbar.set_label("$\sigma$ Reco. position resolution (cm)")
-    ax1.set_xticks(np.arange(0,ZBINS,3))
-    ax1.set_yticks(np.arange(0,XBINS,3))
-    ax1.set_xticklabels(np.round(zbinctr[::3],1))
-    ax1.set_yticklabels(np.round(xbinctr[::3],1))
-    plt.title("$\sigma$ of Reco. position resolution in tank, yrange [%d,%d] cm\n"%(YMIN,YMAX))
-    plt.show()
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = ax1.imshow(valstd,vmin=RESMIN, vmax=RESMAX)
-    cbar = fig.colorbar(im)
-    cbar.set_label("Reco. position resolution (cm)")
-    ax1.set_xticks(np.arange(0,ZBINS,3))
-    ax1.set_yticks(np.arange(0,XBINS,3))
-    ax1.set_xticklabels(np.round(zbinctr[::3],1))
-    ax1.set_yticklabels(np.round(xbinctr[::3],1))
-    plt.title("Mean Reco. position resolution in tank, yrange [%d,%d] cm\n"%(YMIN,YMAX))
-    plt.show()
-
-    RESMIN = 80
-    RESMAX = 100
-    SIGMIN = 0
-    SIGMAX = 20
-    xbinctr, zbinctr,  fomavg,fomstd= XZ_means(f1_trueVtxX,f1_trueVtxY,
-            f1_trueVtxZ,f1_fom,x_numbins=XBINS,z_numbins=ZBINS,yrange=[YMIN,YMAX])
-    Xbinctr, Zbinctr = np.meshgrid(xbinctr, zbinctr) 
     
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = ax1.imshow(fomavg,vmin=RESMIN, vmax=RESMAX)
-    cbar = fig.colorbar(im)
-    cbar.set_label("Average Reco. FOM")
-    ax1.set_xticks(np.arange(0,ZBINS,3))
-    ax1.set_yticks(np.arange(0,XBINS,3))
-    ax1.set_xticklabels(np.round(zbinctr[::3],1))
-    ax1.set_yticklabels(np.round(xbinctr[::3],1))
-    plt.title("Average of Reco. FOM in tank, yrange [%d,%d] cm\n"%(YMIN,YMAX))
-    plt.show()
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = ax1.imshow(fomstd,vmin=SIGMIN, vmax=SIGMAX)
-    cbar = fig.colorbar(im)
-    cbar.set_label("$\sigma$ Reco. FOM")
-    ax1.set_xticks(np.arange(0,ZBINS,3))
-    ax1.set_yticks(np.arange(0,XBINS,3))
-    ax1.set_xticklabels(np.round(zbinctr[::3],1))
-    ax1.set_yticklabels(np.round(xbinctr[::3],1))
-    plt.title("$\sigma$ of Reco. FOM in tank, yrange [%d,%d] cm\n"%(YMIN,YMAX))
-    plt.show()
-
-    YRANGE = [-25,25]
-    RESOLN_RANGE = [0,100]
-    FOM_RANGE = [10,-10]
-    TwoDHist_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,yrange=YRANGE)
+    rbin, phibin, valavg = XZ_means_radial(f1_trueVtxX,f1_trueVtxZ,f1_deltar,ang_bins=30,rad_bins=10)
+    zbin = np.array(rbin)*np.cos(np.array(phibin))
+    xbin = np.array(rbin)*np.sin(np.array(phibin))
+    ybin = np.zeros(len(zbin))
+    ContourMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_deltar,yrange=[-50,50])
+    GridMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_deltar,yrange=[-50,50])
+    FOMMap_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,f1_fom,yrange=[-50,50])
+    TwoDHist_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,yrange=[-50,50])
