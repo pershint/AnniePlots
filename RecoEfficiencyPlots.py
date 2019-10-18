@@ -215,6 +215,33 @@ def TwoDHist_XZSlice(X,Y,Z,yrange=[-30.0,30.0]):
             "Successful reconstruction, muon stops in MRD")
     plt.show()
 
+def FOMVsDeltaPosAng(Y,FOM,DeltaVtxR,DeltaAngle,yrange=[-50.0,50.0]):
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    x, z = [], []
+    valid_ind = np.where((Y>yrange[0]) & (Y<yrange[1]))[0]
+    fom = np.array(FOM[valid_ind])
+    delr = np.array(DeltaVtxR[valid_ind])
+    delang = np.array(DeltaAngle[valid_ind])
+    data = {"FOM":fom, "DeltaVtxR":delr, "DeltaAngle":delang}
+    pd_data = pd.DataFrame(data)
+    g = sns.jointplot("FOM","DeltaVtxR",data=pd_data,
+            color='g', kind='kde',
+            stat_func=None).set_axis_labels("Fit figure of merit","|$r_{true} - r_{reco}$| (cm)")
+    plt.subplots_adjust(left=0.2,right=0.8,
+            top=0.85,bottom=0.1)
+    g.fig.suptitle("Comparison of figure-of-merit to reco. resolution\n" + \
+            "Events in Y-range[%d,%d]\n"%(yrange[0],yrange[1]))
+    plt.show()
+    g = sns.jointplot("FOM","DeltaAngle",data=pd_data,
+            color='b', kind='kde',
+            stat_func=None).set_axis_labels("Fit figure of merit","$\Delta \phi$ (deg)")
+    plt.subplots_adjust(left=0.2,right=0.8,
+            top=0.85,bottom=0.1)
+    g.fig.suptitle("Comparison of figure-of-merit to reco. resolution\n" + \
+            "Events in Y-range[%d,%d]\n"%(yrange[0],yrange[1]))
+    plt.show()
+
 if __name__=='__main__':
     if str(sys.argv[1])=="--help":
         print("USAGE: python RecoEfficiencyPlots.py [file1.root] ")
@@ -312,3 +339,4 @@ if __name__=='__main__':
     RESOLN_RANGE = [0,100]
     FOM_RANGE = [10,-10]
     TwoDHist_XZSlice(f1_trueVtxX,f1_trueVtxY,f1_trueVtxZ,yrange=YRANGE)
+    FOMVsDeltaPosAng(f1_trueVtxY,f1_fom,f1_deltar,f1_deltaangle,yrange=[-50.0,50.0])
